@@ -15,7 +15,7 @@ const register = async(req, res, next) => {
     
     // 8. Silahkan coding agar pengguna bisa menyimpan semua data yang diinputkan ke dalam database
     try {
-        db.query('INSERT INTO unhan_modul_17(username,email,password) VALUES ($1,$2,$3);',[username,email,hashed_pwd])
+        db.query('INSERT INTO unhan_modul17(username,email,password) VALUES ($1,$2,$3);',[username,email,hashed_pwd])
         res.send('data added succesfully!')
         
     } catch (error) {
@@ -26,7 +26,7 @@ const register = async(req, res, next) => {
 const login = async(req, res, next) => {
     const{email,password}= req.body;
     try {
-        const user = await db.query('SELECT * FROM unhan_modul_17 where email=$1;',[email])
+        const user = await db.query('SELECT * FROM unhan_modul17 where email=$1;',[email])
         //check if user is exist
         if(user.rowCount>0){
             // 9. komparasi antara password yang diinput oleh pengguna dan password yang ada didatabase
@@ -83,7 +83,7 @@ const verify = async (req, res, next) => {
     try {
         // 13. membuat verify
         const {username} = req.body
-        const user = await db.query(`SELECT * FROM unhan_modul_17 where username=$1`, [username])
+        const user = await db.query(`SELECT * FROM unhan_modul17 where username=$1`, [username])
         return res.status(200).json({
             user
 //             id: user.rows[0].id,
