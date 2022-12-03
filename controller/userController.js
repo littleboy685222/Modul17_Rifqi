@@ -2,83 +2,98 @@ const express = require('express')
 const db = require('../db.config/db.config')
 const jwt = require('jsonwebtoken');
 // const Auth = require('./auth')
-const cookieParser = require('cookie-parser');
+
 require("dotenv").config();
 const bcrypt = require('bcrypt');
-const { use } = require('../router/router');
-SECRET = process.env.SECRET
+SECRET = process.env.SECRET;
 
 
 const register = async(req, res, next) => {
+    const{username,email,password}= req.body;
     // * 7. silahkan ubah password yang telah diterima menjadi dalam bentuk hashing
-    const{username, email, password}=req.body
-    const hashPassword= await bcrypt.hash(password,10)
+    const hashed_pwd= await bcrypt.hash(password,10)
+    
     // 8. Silahkan coding agar pengguna bisa menyimpan semua data yang diinputkan ke dalam database
-    try{
-        await db.query(`INSERT INTO unhan_modul17 VALUES (DEFAULT, $1, $2,$3)`,[username, email, hashPassword])
-        return res.send('INPUT BERHASIL')
-    } catch (err){
-        console.log(err.message)
-        return res.status(500).send(err)
-
+    try {
+        db.query('INSERT INTO unhan_modul_17(username,email,password) VALUES ($1,$2,$3);',[username,email,hashed_pwd])
+        res.send('data added succesfully!')
+        
+    } catch (error) {
+        res.send('Input failure!')
     }
 }
-  
+
 const login = async(req, res, next) => {
-    // 9. komparasi antara password yang diinput oleh pengguna dan password yang ada didatabase
     const{email,password}= req.body;
     try {
-        const user = await db.query(`SELECT * FROM unhan_modul17 where email=$1;`,[email])
+        const user = await db.query('SELECT * FROM unhan_modul_17 where email=$1;',[email])
+        //check if user is exist
         if(user.rowCount>0){
+            // 9. komparasi antara password yang diinput oleh pengguna dan password yang ada didatabase
             const validPass = await bcrypt.compare(password,user.rows[0].password)
-    // 10. Generate token menggunakan jwt sign
+            //check if password is match
             if (validPass) {
+                // 10. Generate token menggunakan jwt sign
                 let jwtSecretKey = process.env.SECRET;
                 let data = {
-                    id: user.rows[0].id,
-                    username: user.rows[0].username,
-                    email:user.rows[0].email,
-                    password:user.rows[0].password
+                    user
+//                     id: user.rows[0].id,
+//                     username: user.rows[0].username,
+//                     email:user.rows[0].email,
+//                     password:user.rows[0].password
                 }
                 const token = jwt.sign(data, jwtSecretKey);
-    //11. kembalikan nilai id, email, dan username
-                 res.cookie("JWT", token, {httpOnly: true,sameSite: "strict",}).status(200).json({
+                
+                //11. kembalikan nilai id, email, dan username
+                 res.cookie("JWT", token, {httpOnly: true,sameSite: "strict"}).status(200).json({
                     id: user.rows[0].id,
                     username: user.rows[0].username,
                     email:user.rows[0].email,
+                    token:token
                     });
             } else {
-                return res.status(400).send('PASSWORD SALAH')   
+                return res.status(400).send('wrong pass!')   
             }
         }else{
             return res.status(400).json({
-                error: "USER TIDAK TERIDENTIFIKASI, SILAHKAN LOGIN",
+                error: "User is not registered, Sign Up first",
             })
         }
     } catch (error) {
-        return res.send('LOGIN GAGAL')
+        return res.send('login failed')
         
     }
 }
 
 const logout = async(req, res, next) => {
-// 14. code untuk menghilangkan token dari cookies dan mengembalikan pesan "sudah keluar dari aplikasi"    
+                
     try {
-        res.clearCookie("JWT").send("LOGOUT BERHASIL");
-        return res.sendStatus(200);
+        // 14. code untuk menghilangkan token dari cookies dan 
+        // mengembalikan pesan "sudah keluar dari aplikasi" 
+        return res.clearCookie('JWT').send('Logout Succesfull')
+
     } catch (err) {
         console.log(err.message);
         return res.status(500).send(err)
     }
             
 }
-// 13. membuat verify\
-const verify = async(req, res, next) => {
+
+const verify = async (req, res, next) => {
     try {
-        res.send(req.data)
+        // 13. membuat verify
+        const {username} = req.body
+        const user = await db.query(`SELECT * FROM unhan_modul_17 where username=$1`, [username])
+        return res.status(200).json({
+            user
+//             id: user.rows[0].id,
+//             username: user.rows[0].username,
+//             email: user.rows[0].email,
+//             password: user.rows[0].password
+        })
     } catch (err) {
         console.log(err.message);
-        return res.status(500).send(err)    
+        return res.status(500).send(err)
     }
 }
 
