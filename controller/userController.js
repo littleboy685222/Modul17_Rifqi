@@ -15,7 +15,7 @@ const register = async(req, res, next) => {
     const hashPassword= await bcrypt.hash(password,10)
     // 8. Silahkan coding agar pengguna bisa menyimpan semua data yang diinputkan ke dalam database
     try{
-        await db.query(`INSERT INTO unhan_modul17 VALUES (DEFAULT,$1, $2,$3)`,[username, email, hashPassword])
+        await db.query(`INSERT INTO unhan_modul17 VALUES ($1, $2,$3)`,[username, email, hashPassword])
         return res.send('INPUT BERHASIL')
     } catch (err){
         console.log(err.message)
