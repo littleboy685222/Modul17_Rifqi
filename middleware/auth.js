@@ -9,7 +9,7 @@ const Auth = {
         console.log(token);
         if (token) {
             // 12. Lakukan jwt verify
-            const decoded = jwt.verify(token, config.SECRET);
+            const decoded = jwt.verify(token, SECRET);
             req.data = decoded;
             return next()
         } else if(tokenPM){
